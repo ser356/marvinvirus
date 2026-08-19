@@ -1,0 +1,102 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: nsis
+            asset_ext: exe
+            asset_dir: nsis
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            bundles: app,dmg
+            asset_ext: dmg
+            asset_dir: dmg
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: build-${{ matrix.os }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Vite build
+        run: npm run build
+
+      - name: Instalar cargo-tauri
+        run: cargo install tauri-cli --locked --version "^2"
+
+      - name: cargo tauri build
+        working-directory: src-tauri
+        run: cargo tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: marvinvirus-${{ matrix.os }}
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.asset_dir }}/*.${{ matrix.asset_ext }}
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          shopt -s globstar nullglob
+          files=(artifacts/**/*.exe artifacts/**/*.dmg)
+          [[ ${#files[@]} -gt 0 ]] || { echo "no artefactos"; exit 1; }
+          for f in "${files[@]}"; do
+            sha=$(sha256sum "$f" | awk '{print $1}')
+            echo "$sha  $(basename "$f")" > "$f.sha256"
+          done
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" artifacts/**/*.sha256 --clobber
+          else
+            gh release create "$TAG" "${files[@]}" artifacts/**/*.sha256 \
+              --title "marvinvirus $TAG" --generate-notes
+          fi

@@ -1,0 +1,20 @@
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/
+.graph/sessions.db
+
+# rust / node / tauri build output
+target/
+node_modules/
+dist/
+src-tauri/gen/
+src-tauri/WixTools/
+
+# macOS
+.DS_Store
+
+# logs / secrets / editor
+*.log
+.env
+.env.local
+.vscode/
+.idea/
