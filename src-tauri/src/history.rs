@@ -64,8 +64,10 @@ pub fn restore(app: &tauri::AppHandle, id: &str) -> Result<()> {
 #[cfg(target_os = "windows")]
 fn open_recycle_bin() -> Result<()> {
     use std::process::Command;
+    use crate::util::NoWindow;
     Command::new("explorer.exe")
         .arg("shell:RecycleBinFolder")
+        .no_window()
         .spawn()
         .map(|_| ())
         .map_err(|e| anyhow!(e.to_string()))

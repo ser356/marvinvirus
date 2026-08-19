@@ -123,9 +123,11 @@ fn delete_local(path: &str) -> Result<u64> {
 #[cfg(target_os = "windows")]
 pub fn launch_uninstaller(uninstall_string: &str) -> Result<()> {
     use std::process::Command;
+    use crate::util::NoWindow;
     let (exe, args) = split_command_line(uninstall_string);
     Command::new(&exe)
         .args(&args)
+        .no_window()
         .spawn()
         .map(|_| ())
         .map_err(|e| anyhow!(e.to_string()))

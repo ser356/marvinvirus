@@ -64,10 +64,11 @@ fn toggle_startup_approved(hive: winreg::HKEY, name: &str, enabled: bool) -> Res
 #[cfg(target_os = "windows")]
 fn toggle_task(name: &str, enabled: bool) -> Result<()> {
     use std::process::Command;
-    let action = if enabled { "/Change" } else { "/Change" };
+    use crate::util::NoWindow;
     let flag = if enabled { "/Enable" } else { "/Disable" };
     let status = Command::new("schtasks.exe")
-        .args([action, "/TN", name, flag])
+        .args(["/Change", "/TN", name, flag])
+        .no_window()
         .status()
         .map_err(|e| anyhow!(e.to_string()))?;
     if status.success() {

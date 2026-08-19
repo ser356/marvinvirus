@@ -42,7 +42,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri
+          workspaces: |
+            src-tauri
+            helper
           key: build-${{ matrix.os }}
 
       - uses: actions/setup-node@v4
@@ -50,24 +52,52 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Instalar ImageMagick (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install imagemagick.app -y --no-progress
+
+      - name: Instalar ImageMagick (macOS)
+        if: runner.os == 'macOS'
+        run: brew install imagemagick
+
+      - name: Generar icono placeholder
+        shell: bash
+        run: bash scripts/gen-icon.sh
+
       - name: npm ci
         run: npm ci
+
+      - name: Instalar cargo-tauri
+        run: cargo install tauri-cli --locked --version "^2"
+
+      - name: Regenerar iconos Tauri
+        working-directory: src-tauri
+        run: cargo tauri icon icons/app-icon.png
 
       - name: Vite build
         run: npm run build
 
-      - name: Instalar cargo-tauri
-        run: cargo install tauri-cli --locked --version "^2"
+      - name: Compilar helper elevado (solo Windows)
+        if: runner.os == 'Windows'
+        run: cargo build --release --package marvinvirus_helper --target ${{ matrix.target }}
 
       - name: cargo tauri build
         working-directory: src-tauri
         run: cargo tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
 
+      - name: Copiar helper.exe junto al instalador (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bundleDir = "src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.asset_dir }}"
+          Copy-Item "target/${{ matrix.target }}/release/marvinvirus_helper.exe" $bundleDir
+
       - name: Subir artefacto
         uses: actions/upload-artifact@v4
         with:
           name: marvinvirus-${{ matrix.os }}
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.asset_dir }}/*.${{ matrix.asset_ext }}
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.asset_dir }}/*
           if-no-files-found: error
 
   release:

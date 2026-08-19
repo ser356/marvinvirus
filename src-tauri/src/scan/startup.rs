@@ -131,9 +131,11 @@ fn scan_startup_folders(out: &mut Vec<StartupEntry>) {
 #[cfg(target_os = "windows")]
 fn scan_scheduled_tasks(out: &mut Vec<StartupEntry>) {
     use std::process::Command;
+    use crate::util::NoWindow;
 
     let output = Command::new("schtasks.exe")
         .args(["/Query", "/FO", "CSV", "/V", "/NH"])
+        .no_window()
         .output();
 
     let out_bytes = match output {

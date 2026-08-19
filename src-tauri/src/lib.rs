@@ -3,6 +3,7 @@ mod scan;
 mod clean;
 mod history;
 mod helper_ipc;
+mod util;
 
 use serde::Serialize;
 use tauri::Manager;
