@@ -18,3 +18,8 @@ src-tauri/WixTools/
 .env.local
 .vscode/
 .idea/
+
+# override del gitignore global de macOS: patron `Icon?` hace match con `icons/`
+# (case-insensitive) y bloquea los iconos de Tauri. Forzamos su inclusion.
+!src-tauri/icons/
+!src-tauri/icons/**
