@@ -90,14 +90,14 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $bundleDir = "src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.asset_dir }}"
+          $bundleDir = "target/${{ matrix.target }}/release/bundle/${{ matrix.asset_dir }}"
           Copy-Item "target/${{ matrix.target }}/release/marvinvirus_helper.exe" $bundleDir
 
       - name: Subir artefacto
         uses: actions/upload-artifact@v4
         with:
           name: marvinvirus-${{ matrix.os }}
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.asset_dir }}/*
+          path: target/${{ matrix.target }}/release/bundle/${{ matrix.asset_dir }}/*
           if-no-files-found: error
 
   release:
