@@ -4,7 +4,7 @@ use std::path::Path;
 use uuid::Uuid;
 
 use crate::history::{self, HistoryEntry};
-use crate::helper_ipc;
+use crate::elevated;
 use crate::paths;
 
 #[derive(Deserialize, Debug, Clone)]
@@ -58,7 +58,7 @@ pub fn run(app: &tauri::AppHandle, plan: CleanPlan) -> Result<CleanResult> {
 
     if !elevated_paths.is_empty() || !plan.startup_toggle.is_empty() {
         let (helper_ok, helper_failed, helper_bytes) =
-            helper_ipc::run_elevated(&elevated_paths, &plan.startup_toggle);
+            elevated::run_elevated(&elevated_paths, &plan.startup_toggle);
         freed += helper_bytes;
         for p in &helper_ok {
             restore_items.push(history::RestoreItem {

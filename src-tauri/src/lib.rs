@@ -2,8 +2,12 @@ mod paths;
 mod scan;
 mod clean;
 mod history;
-mod helper_ipc;
+mod elevated;
 mod util;
+
+pub fn apply_elevated_cli(in_path: &str, out_path: &str) -> std::io::Result<()> {
+    elevated::apply_from_cli(in_path, out_path)
+}
 
 use serde::Serialize;
 use tracing_subscriber::EnvFilter;
