@@ -6,7 +6,6 @@ mod helper_ipc;
 mod util;
 
 use serde::Serialize;
-use tauri::Manager;
 use tracing_subscriber::EnvFilter;
 
 use scan::ScanReport;

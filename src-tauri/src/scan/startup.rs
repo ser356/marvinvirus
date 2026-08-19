@@ -41,7 +41,7 @@ pub fn scan() -> Result<Vec<StartupEntry>> {
 #[cfg(target_os = "windows")]
 fn scan_run_keys(out: &mut Vec<StartupEntry>) {
     use winreg::enums::*;
-    use winreg::RegKey;
+    use winreg::{RegKey, HKEY};
 
     let sources: [(HKEY, &str, StartupSource, bool); 4] = [
         (HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", StartupSource::HklmRun, true),

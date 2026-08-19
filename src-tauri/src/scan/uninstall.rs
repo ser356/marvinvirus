@@ -17,7 +17,7 @@ pub struct UninstallEntry {
 #[cfg(target_os = "windows")]
 pub fn scan() -> Result<Vec<UninstallEntry>> {
     use winreg::enums::*;
-    use winreg::RegKey;
+    use winreg::{RegKey, HKEY};
 
     let mut out = Vec::new();
     let sources: [(HKEY, &str); 4] = [

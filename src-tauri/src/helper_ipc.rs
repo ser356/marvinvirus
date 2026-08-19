@@ -30,7 +30,6 @@ pub fn run_elevated(
     startup: &[StartupToggle],
 ) -> (Vec<String>, Vec<CleanFailure>, u64) {
     use std::io::{BufRead, BufReader, Write};
-    use std::os::windows::ffi::OsStrExt;
 
     let mut ok = Vec::new();
     let mut failed = Vec::new();
@@ -153,7 +152,7 @@ fn create_pipe() -> std::io::Result<(String, std::fs::File)> {
 fn launch_runas(exe: &std::path::Path, pipe: &str) -> std::io::Result<()> {
     use std::os::windows::ffi::OsStrExt;
     use windows::core::{w, PCWSTR};
-    use windows::Win32::UI::Shell::{ShellExecuteW, SEE_MASK_NOCLOSEPROCESS};
+    use windows::Win32::UI::Shell::ShellExecuteW;
     use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
 
     let file: Vec<u16> = exe.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
