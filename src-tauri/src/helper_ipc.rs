@@ -117,6 +117,7 @@ fn locate_helper() -> Option<std::path::PathBuf> {
 fn create_pipe() -> std::io::Result<(String, std::fs::File)> {
     use std::os::windows::io::FromRawHandle;
     use windows::core::PCWSTR;
+    use windows::Win32::Foundation::INVALID_HANDLE_VALUE;
     use windows::Win32::Storage::FileSystem::{
         PIPE_ACCESS_DUPLEX, FILE_FLAG_FIRST_PIPE_INSTANCE,
     };
@@ -143,7 +144,9 @@ fn create_pipe() -> std::io::Result<(String, std::fs::File)> {
             None,
         )
     };
-    let handle = handle.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+    if handle == INVALID_HANDLE_VALUE {
+        return Err(std::io::Error::last_os_error());
+    }
     let file = unsafe { std::fs::File::from_raw_handle(handle.0 as _) };
     Ok((pipe_name, file))
 }
